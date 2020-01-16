@@ -1,0 +1,281 @@
+---
+title: "ggplot2 + Data Visualization"
+author: "Sarah Van Alsten"
+date: "January 26, 2019"
+output: html_document
+---
+
+Perhaps the thing that R is best at is visualization- making graphs. The reason may be something to do with how flexible the graphics can be- we can change just about anything we like, from color, size, layout, text, and even larger things like what TYPE of graph something is with relatively few lines of code.
+
+Graphing can be done in "base" R- that is, without loading any extra packages, and it looks something like this:
+
+```{r}
+#I'm loading some data just for illustration: iris is a dataset that's been built into R for people to pracice
+#with. It collects some flower measurements along with the species of iris the flower is
+data(iris)
+
+#what variables does this dataset contain?
+#use names() to find out!
+names(iris)
+
+#if those don't mean anything to you, all that's important is knowing sepals and petals are parts of an iris :)
+
+#do a quick scatter plot
+plot(x = iris$Sepal.Length, #the variable on the x access in form data$var
+     y = iris$Sepal.Width, #the variable on the y access in form data$var
+     col = "red") #color of points
+
+```
+
+
+Not that interesting, right? We could easily make a comparable, and propably much prettier graph with some other software.
+
+But wait!
+That's where ggplot2 comes in. This is one of the most widely used R packages, and for good reason. GG stands for "grammer of graphics" because the commands were written so they could be grasped fairly intuitively, and so once you understand how to change one thing you can easily expand it to something else. (or rely on google- I've found that R users, particularly the ones who like to graph, are prolific bloggers and love to write about how they made their latest graph!)
+
+To get started, go ahead and load the packages we need: 
+1. ggplot2 (for graphing commands)
+2. dplyr (this is to manipulate our data and get it into the proper format for graphing)
+
+```{r}
+#Load the packages: if you haven't installed yet go to tools -> install packages and type them in
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+
+```
+
+Let's load a different dataset to work with. Flowers are great, but I think some infectious disease might be more interesting (here's my epi hat showing)
+
+```{r}
+#this package contains a wealth of fun practice datasets
+install.packages("dslabs")
+library("dslabs")
+data(package="dslabs")
+
+
+#the dataset we want is us_contagious_diseases
+#let's see what's in it
+summary(us_contagious_diseases)
+
+```
+
+
+We can see the dataset has 6 variables: the disease, state Name, year, weeks_reporting, count, and population.
+
+When we're getting to know our data, often we might like to visualize the distributions of the continous variables to see if they're normally ditribted. We can juse a histogram or a density plot; both of these are a "simpler" graph because they only involve one variable on the x axis.
+
+Now to build a graph with ggplot: 
+the important thing to know is that in ggplot2, "graphs have layers, layers are called geoms()" (I remember this because it's from Shrek). Lower layers control everything above them, and we can progressively add more and more layers on our graph to depict different things. The very bottom layer controls the graph aesthetics (essentially the x and y coordinates of the graph, plus possibly overarching color schemes), and the dataset where it's from. For a one variable graph, we won't have a y variable, so we'll just specify the x. 
+The hardest part about ggplot is figuring out what needs to go in the aes() [aesthetics] command. For now, just remember: the x variable, y variable (if needed), and color (if needed)
+
+```{r}
+#base layer: note, I'm saving it so we can easily add different things on top, but you could also just
+#print it directly to the console
+base <- ggplot(data = us_contagious_diseases, aes(x = population))
+
+#to make different types of graphs, we add on layers saying what we want. Most have intuitive names, like
+#geom_histogram, gem_density, geom_boxplot, geom_point (for scatter plot), geom_line (for linechart),
+#geom_violin for violin plots etc etc
+
+#add a histogram layer
+base + geom_histogram()
+
+#or a density plot
+base + geom_density()
+
+```
+
+Okay, those graphs are fine if we're just trying to get to know our data, but they're not very pretty. Let's work with the density plot some more. We should make the axes more descriptive, and give it a title.
+```{r}
+graph <- 
+  base + geom_density() + 
+  ggtitle("Population Density Plot") + #ggtitle controls the main title
+  xlab("Population") + ylab("Number of Observations") #xlab and ylab are the x axis and y axis labels, respectively
+
+
+#ok, why did nothing print out at first? Because I assigned (saved) all my work to a variable called 'graph'. This 
+#will allow me to work with it later, but I can always just type the variable name and have it printed out
+
+
+graph #print out to console
+
+```
+Note the changed axes labels and titles.
+
+That's better already, but the colors are not very pleasing. Let's fill in the graph and make the background lighter.
+```{r}
+graph2 <- base + #our basic layout of x variable and dataset
+  theme_bw() +  #a theme: these govern the general look of the graph
+  geom_density(fill = "cyan") #fill in the density plot with cyan color
+
+#print it out
+graph2
+```
+
+What happened above: I changed the "theme" to make it lighter and give the axes black test. Then, I specified within the geom_density() that I wanted the graph filled in blue. The reason I put the coloring in there was that the fill specification affects that layer of the graph- I told ggplot I want a density plot, and I want it filled in cyan blue.
+
+```{r}
+#explore some more theme options
+base + geom_density() + theme_classic()
+
+base + geom_density() + theme_light()
+
+base + geom_density() + theme_void()
+
+base + geom_density() + theme_dark()
+
+```
+
+Now let's try a more complex graph that requires 2 variables (x and y) such as a scatterplot.
+The really nice thing is that almost everything is the same as before, we just add the y variable into
+the aes() command and change the geom_ type to something with geom_point.
+
+```{r}
+
+ggplot(data = us_contagious_diseases,
+       aes(x = population, y = count)) + geom_point()
+
+```
+
+
+Nice. Now go back and see if you can change the labels, add a title, and change the theme.
+
+```{r}
+
+```
+
+
+If we want to know which points correspond to what type of disease, we might want to make them a differnt color.
+This is where the aes() comes in again. Just like we mapped a variable onto x and y, we can map a variable onto color. I like to think of color as being a third axis or dimension to the graph, which explains why is goes in the aesthetic.
+
+```{r}
+
+ggplot(data = us_contagious_diseases,
+       aes(x = population, y = count, color = disease)) + geom_point()
+
+
+```
+
+Now the mind blowing part: let's do it again and get the exact same result, but in a slightly different way. Notice here, I put color inside of a SECOND aes() command within the geom_point layer and not the base layer. This shows the cool ggplot feature that every layer is capable of having it's own system of governance; it's own aesthetics. If we leave it blank, it will always default to the aesthetics inside of the base layer. That's why, even though there were no x and y in the geom_point command, ggplot was able to fill those in by extrapolating from the base layer. The only time it will use the geom_ layers for aesthetics is if they are explictly given.
+
+```{r}
+ggplot(data = us_contagious_diseases,
+       aes(x = population, y = count)) + geom_point(aes(color = disease))
+```
+
+
+
+For further illustration:
+
+```{r}
+ggplot(data = us_contagious_diseases,
+       aes(x = population, y = count, color = state)) + geom_point(aes(color = disease))
+```
+
+Notice here, in the base layer I added a color command for state, but what is depicted is still different diseases. That's because in the geom_ we specified a color, and that specification will trump the base governing layer. If this is a lot, I think the best option is to put all of your specifications in the base layer for now to help organize your thinking, but it's helpful to know.
+
+Let's also talk about legends. You may have noticed above that although disesase was depicted, the color legend still said 'state' in accordance with the base layer. Luckily, we have the power to change that!
+
+```{r}
+ggplot(data = us_contagious_diseases,
+       aes(x = population, y = count, color = state)) + geom_point(aes(color = disease)) +
+       labs(color = "Disease", x = "Population", y = "Count")
+```
+
+Every aesthetic comes with the possiblity of renaming with a label, just like x and y. Thus, the labs() command,
+in which I specified which labels I wanted to change, and what I wanted the new labels to be.
+
+
+What if we have one categorical and one continuous variable? We might want a grouped boxplot, a grouped density plot,
+or a grouped violin plot. Luckily, again- the syntax is all going to be the same, we just need to change what comes after geom_.
+
+Again: baselayer(data, aes()) + geom_typeofgraph(possible other aes()) + theme_something() + labs()
+
+See how we're iteratively building up the graph?
+
+```{r}
+#violin plot example
+ggplot(data = us_contagious_diseases,
+       aes(x = disease, y = count, color = disease)) + geom_violin() +
+       labs(color = "Disease", x = "Disease", y = "Count")
+
+```
+
+Here, notice I put disease in two aesthetics: both color and x. That's totally acceptable if you want pretty graphs :) However, given the huge count of measles cases, we're having a hard time seeing the shape of other distributions. Let's filter out measles data to get a better understanding of the others.
+
+This brings us to the necessary task of data management. How do we filter our data so we can only graph specific pieces? That brings us to dplyr and tidyverse, another brilliant creation of Hadley Wickham (R guru)... who coincidentally also wrote the functions for ggplot2
+
+
+And now, a short digression. Think of the logical flow of steps you want to take when you are managing data.
+1. What's my data source?
+2. What observations am I interested in?
+3. What variables do I want for those observations?
+4. What variables do I need to create from the variables I just chose?
+
+In keeping with this logical flow of ideas, there's an *incredibly* handy operator in R that is called a 'pipe'. It looks like this %>%  . If your fingers fumble around looking for those symbols too, I recently learned the keyboard shortcut (on windows at least) to insert one is Ctrl-Shift-M . 
+
+Basically, the pipe connects ideas that need to happen sequentially, passing everything that was accomplished in the first step to the 2nd, and then the results of the 2nd to the 3rd, and so on .
+
+As an illustration:
+
+I buy apples %>%
+  I keep only the green ones %>%
+    I cut up those apples %>%
+      I bake a pie
+      
+      
+We can use pipes to make the task of data management easier, along with a few handy commands to remember:
+
+-filter() : keep observations if they meet specified criteria
+
+-select() : pick variables
+
+-summarise() : compute basic statistics and such on what we've chosen
+
+-mutate() : create new variables using the data/vars we've chosen
+
+```{r}
+#For example:
+#1. start with the data source
+us_contagious_diseases %>% #<- that handy pipe!
+  filter(disease != "Measles") %>% #apply a filter: select observations where dz is not equal (!=) to Measles
+  select(disease, population, count)
+
+#and our selected data should be printed out right to the console!
+#in the same way we've used assignment (<-) to save things before, we can
+#save our new data set to work with like so
+
+new.disease.data <- us_contagious_diseases %>% #<- that handy pipe!
+  filter(disease != "Measles") %>% #apply a filter: select observations where dz is not equal (!=) to Measles
+  select(disease, population, count)
+
+ggplot(data = new.disease.data, aes(x = disease, y = count, color = disease)) + 
+  geom_violin() +
+  labs(color = "Disease", x = "Disease", y = "Count")
+
+#or, if we don't need to save it and are only interested in using it to graph, we can pipe it straight into
+#ggplot!
+us_contagious_diseases %>% 
+  filter(disease != "Measles") %>% 
+  select(disease, population, count) %>%
+  ggplot(aes(x = disease, y = count, color = disease)) + 
+  geom_violin() +
+  labs(color = "Disease", x = "Disease", y = "Count")
+
+
+```
+
+
+Way cool! These are still not normally distributed whatsoever, but as you can see, measles is no longer displayed and we can better see some of the rarer diseases (yay vaccines for making them so low!) THe last thing I should point out is in the code that piped directly to ggplot: notice there's no data = statement. That's because whatever the pipe passes on is automatically used for the first argument of the next statement. We passed on the data, so we didn't need to explicitly name it.
+
+
+Practice on your own: try making a similar graph to the one above, but instead of filtering out measles, filter out smallpox. Instead of a violin plot, make a boxplot. Try if with pipes and without.
+
+```{r}
+
+```
+
+
+
+Again, a high level overview of dataviz and I barely scratched the surface. But hopefully helpful and gets you started with the world of tidyverse!
