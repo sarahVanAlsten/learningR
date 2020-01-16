@@ -1,0 +1,537 @@
+---
+title: "R Tutorial 1"
+author: "Sarah Van Alsten"
+date: "January 20, 2019"
+output: html_document
+---
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. It allows for a synthesis of longer line comments with runnable code directly in R. All code can be resused in a regular 'R script' file (those without the accompanying text), so you can use either to write the same code. For now, all you need to know is how to run the code! There are several options:
+
+1) Click anywhere within the single line of code that you want to run, and press Ctl-Enter
+
+2) Highlight all the code you want to run (can include multiple lines) and press Ctl-Enter. Faster if you've written a lot that you want to run without having to continuously go back and run one by one.
+
+3)For R-Markdown only: press the little green 'Play' triangle on the far right of any of the grey code portions. This will run all the code in that "chunk" only
+
+*For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+Important note 2: R **IS** case sensitive. A file named myfile is not equivalent to Myfile, myFile, or mYfIlE. The same thing goes for commands: import() is not the same as Import(). When you write your own code, I highly recommend adopting a consistent naming convention, particularly for mulit-part names, such as ALWAYS capitalizing the first letter of the second 'word', or naming the results of all statistical tests with a . to separate words.
+Even if not, R does try to make things as easy as possible for you to remember, so once you've defined something and begin typing the beginning few letters, options pop up that remind you of possible things it could refer to, then you can just press ENTER and the remainder will be filled in. 
+
+## Assignment With R
+
+In R, the assignment operator <-  is equivalent to an = in SAS. The general format of any assignment expression is
+my_new_variable <- expression
+
+For example:
+
+```{r}
+#numeric variables.. PEMDAS applies
+twentyone <- 21 
+
+equationResult <- (3+7)* 50
+
+eqResult2 <- twentyone + 8 *4/2
+
+#Character Strings
+sarahsName <- "Sarah"
+
+thisUniversity <- "Washington University in St. Louis"
+
+aPathname <- "C:/Desktop/Documents/My_Data.csv" 
+#note: this will compile even if the pathname isn't legitimate, 
+#and will only throw an error when you try to use it if such a file doesn't exist
+
+#A Formula used for modeling
+#Format is dependent ~ predictors
+myFormula <- weight~ sex + race + exercise + sex*race 
+
+#A vector (the c means 'concatenate'): we'll return to this one more later
+male <- c(0,1,1,0,1,0,1,1,0,0,0,0,1,1,0,1)
+
+fNames <- c("Bob", "Joe", "Jane", "Taylor", "Sylvia", "Fabio", "Jenny", "Billy Bob", "Sam",
+            "Elaine", "Jerry", "John")
+
+lNames <- c("Smith", "Smith", "Smith", "Brown", "Brown", "Brown", "Smith", "Brown", "Smith", "Smith",
+            "Brown", "Brown")
+
+#As can be seen in the fNames and lNames example, statements CAN extend beyond one line, as long as it is
+#clear to the program that the statement hasnt't ended (no closed parentheses, ending an equation with an
+#operator). R doesn't require specific 'closure' with a comma or semicolon
+
+```
+
+## Data Types
+
+As can be imagined, we might want to check what "type" our variables are, to make sure we can use them in the appropriate functions. Mix-ups with improper types are most common when it comes to **FACTORS** (categorical variables). R requires that when you want to treat a variable as categorical (eg as a predictor or to organize output), you specifically transform it into a **FACTOR**. Let's see how to
+1) Check our variable types
+2) Start changing things into factors
+
+```{r}
+
+#Are the data types what we'd expect?
+class(twentyone)
+class(equationResult)
+class(eqResult2)
+
+class(sarahsName)
+class(thisUniversity)
+class(aPathname)
+
+class(myFormula)
+
+class(male)
+
+class(fNames)
+class(lNames)
+
+
+```
+
+Great: mostly. We probably want the vector 'male' to be a FACTOR instead of CHARACTER, so let's go ahead and change that. We do so by using the as.___() function in R. The blank indicates that this function can be used generally to convert to many data types, not just factors. Try running this whole code chunk together with the green play button: did male become a factor? If not, try to fix it. **Hint** : the problem has to do with the very first section of this tutorial
+
+```{r}
+
+as.factor(male)
+
+is.factor(male) #same general format as above, is.____() checks T/F if variable matches given type
+
+
+```
+
+Answer: We didn't assign the result of as.factor(male) to anything! The result was simply printed to the console, but never saved in system memory. What we save the result to has to do with whether we need to preserve the original data or not. As you already know, it's best practice to recode into a new variable, even if we're changing the data type; although for this example it's hard to imagine treating 'male' the way we coded it as anything but categorical 
+
+```{r}
+#Coding into new variable- just name is something different. 
+
+maleFactorRecode <- as.factor(male)
+
+#coding into same variable: rewrites old one
+male <- as.factor(male)
+
+
+is.factor(maleFactorRecode)
+is.factor(male)
+
+#BONUS: WHat other way could we use to check if our variable is the correct type?
+
+```
+
+This is all great, but the data that we're generally not going to be hand-entering most of our data into R. How do we import from other sources? For the most generic sources (CSVs) and other character-delimited files, we can use built in functions. All we have to do is come up with a name for the dataset, and assign it to the result of the import function. For the purposes of not getting an error message, you will have to change the pathname of these files to the corresponding location on your computer (I'm using some of the old data from SAS class but it can be done with any CSV you have available).
+
+
+```{r}
+#CSV example
+#Also note slash direction
+myCSV <- read.csv("C:/Users/svana/OneDrive/Desktop/SAS_class_2018/SAS Lab II datasets/csv_w1data.csv")
+
+
+#If the file is delimited by some other character, we can add a second option to the read.csv()
+#function, sep = ___.For example, if the file was tab delimited, we would instead write:
+#myCSV <- read.csv("pathname", sep = '\t')
+
+```
+
+For imports from other statistical software packages, we will have to load something that is called a 'package'.
+Packages are bundles of useful functions, analysis techniques, graphing tools, etc. that have been developed and
+uploaded by some other person in the R universe to make our job a little easier. For importing data, there are many possible options available, but two that I use most frequently are the 'foreign' and 'readxl'. Before loading the package, though, it has to be installed.
+
+My preference on how to do this is to click on the 'Tools' button at the top of R studio, then 'Install packages' then type in the name of all packages I need to install. This only ever has to be done once- unless you specifically UNinstall a package, it should stick around forever. 
+
+The second alternative:
+```{r}
+#here I'm installing a few packages that I use most commonly and will eventually return to discussing
+install.packages("foreign")
+install.packages("read.sas7bdat")
+install.packages("readxl")
+install.packages("ggplot2")
+
+install.packages(c("car", "dplyr")) #note here: you can join a list of multiple things that you
+#wish to install at once into a list with the concatenate c()
+
+```
+However, once a package is installed, you still have to LOAD the package in every session in which you wish to use it. Sometimes, this is easy to forget if you start a second R file without leaving (exiting), because all packages are already loaded from the prior code. Then if you exit, and come back to the second file where you have not written in to load those packages, you get an error message along the lines of "Could not find x function". No worries! Just write in the code to load it and you're good to go.
+
+**MINOR** Coding Note: Most users prefer to list out all the packages which they are going to use in any given program at the top, before all the other code.
+
+And how to load a package? With the library() function! 
+
+
+Okay, now to finally get back to bringing in the data. Through the foreign package, we can import stata and SPSS files, and with sas7bdat we can import from SAS
+
+```{r}
+#First, load the packages
+library(foreign)
+library(sas7bdat)
+library(readxl)
+
+stataFile <- read.dta("C:/Users/svana/OneDrive/Desktop/SAS_class_2018/SAS Lab II datasets/SAS Lab II datasets/Stata_data.dta")
+
+spssFile <- read.sav("C:/Users/svana/OneDrive/Desktop/healthAccess.sav")
+
+#foreign also has a function for epiinfo read.epiinfo()
+
+sasFile <- read.sas7bdat("C:/Users/svana/OneDrive/Desktop/SAS_class_2018/patients.sas7bdat")
+
+excelFile <- read_excel("C:/Users/svana/OneDrive/Desktop/Demographic Data.xls")
+
+
+```
+
+Okay, let's try bringing in a different dataset and then we'll play around with it a bit more. To mix from the data of last semster, let's do some work with NHANES. R conveniently has a package that will bring in NHANES data directly, called RNHANES. (Sidebar: if there's a fairly common procedure/technique that you surmise would be far easier if you didn't have to write it over and over, google it. Someone probably made a package. In fact, someone has probably made a package for something you can't even imagine needing to use- there is one known as twittr which supposedly allows you to send tweets from R.)
+
+Two: if it feels like there are way too many packages and you're never going to remember them all, that's ok. Usually I just google what I need to do or a function I remember using and quickly discern what package I need from there.
+
+```{r}
+#Install the RNHANES package! Try it on your own, with whatever method you choose.
+
+
+#now load the library for RNHANES!
+
+
+
+
+```
+
+```{r}
+
+#bring in the data: let's do drug use, the DUQ_H
+
+#We'll add commands to specify the year, and that we also want demographic variables
+
+# Let's look at 2013-2014 NHANES data
+# use the name of the data you want (DUQ_H for drug use)
+# add demographic data using demographics = TRUE
+
+nhanes2013 <- nhanes_load_data(file_name = "DUQ_H",
+                               year = "2013-2014",
+                               demographics = TRUE)
+
+
+```
+
+Link to codebook: https://wwwn.cdc.gov/Nchs/Nhanes/2013-2014/DUQ_H.htm
+
+How do we see that everything imported successfully, and learn what's in the dataset/ number of observations and varaiables? One option is to just glance and see if you have the right number listed over on the Right hand side. There is a box in the upper right hand corner ("Enviornment" is the relevant tab) where all variables/objects that are active and available in your workspace appear. Next to the name of the dataset, it will save how many observations and variables are included.
+
+**How many variables are in nhanes2013? How many observations?**
+
+If we actually want to scroll through and look at our data, we can click on the name in the box on the upper right, and a tab displaying the data set should open up. For a quick view of some of the variables in it, we can also just click the blue arrow next to the name, and a list of the variables, their types, and the values for the first 10 or so observations are shown.
+
+Alternatively, we may wish to print out the first few observations to the console. THis can be done with head(the first 10) or tail(the last 10). We can change the argument n= if we want a different number rather than the default.
+```{r}
+#display first 10 obs of nhanes2013
+head(nhanes2013, n = 10)
+
+
+#display last 10
+tail(nhanes2013, n = 10)
+
+
+```
+
+**Looking at Variables**
+
+How do we learn more about what's contained in the dataset? It's tedious and impractical to scrolll through the whole dataset, so we can use one of several summary functions. First, let's try str() which stands for 'structure', which is the closest approximation to SAS's PROC CONTENTS. It again lists the number of observations and variables, then tells us the names of each of those variables, the data type of that variable, and lists the values in the first several observations. The order in which variables are listed is by their column in the dataset (the first recorded variables are listed first, later ones after)
+
+```{r}
+#use str() to examine drug dataset
+str(nhanes2013)
+
+
+```
+
+An alternative that I often prefer is summary(). Summary is actually a general function that can be used to display not only the contents of dataframes (that is, the matrix representation of a 2 dimensional dataset), but of statistical tests and other objects. Summary not only tells us what the variables are, but a little about their distributions and missing values (NAs)
+
+
+```{r}
+#Use summary to examine dataset
+summary(nhanes2013)
+
+
+```
+
+
+However, this again can be far too much information, particularly when datsets are larger, so then str() may be the preferable choice. Either way, we are still going to have to do some recoding and manipulation, so let's learn how!
+
+First, though, a short primer in how to name and refer to variables in R.
+
+From the nhanes2013, we can see there is a variable RIDAGEYR (age). If we want to do operations with this, unfortunately we cannot just say 'RIDAGEYR...something', because R doesn't know where to find RIDAGEYR. I liken this to when you do procedure in SAS and have to specify data = __ to ensure that the variable is coming from the correct source. 
+
+In R, to refer to a variable in a data frame, we use a $ to separate out the data frame name and the variable name. Here's how that looks:
+```{r}
+nhanes2013$RIDAGEYR
+#note, if you run this, it will print out all the values in that variable to the console, as if you did a proc print of the variable
+
+
+#How would you refer to the variable for ever used heroin? (DUQ290)
+
+
+
+```
+
+Another common way you'll see people coding and referring to variables in INDEXING. Essentially, you refer to a specific variable/observation by its numeric placement within the dataframe. If I know, for instance, that RIDAGEYR is the 6th variable in this frame, I can do something like this:
+
+```{r}
+nhanes2013[, 6]
+
+
+```
+
+the general format is dataframe[row, column]. As in the previous example, by leaving the row part blank, I specify the entire 6th column. If I wanted all data for person number 8 in the frame, I could do (press black arrow keys next to variable names in the printout to scroll)
+
+```{r}
+nhanes2013[8,]
+
+```
+
+
+You can also combine indexing and concatenation to refer to multiple columns at once:
+```{r}
+# row 8, col 2 and  6 to 10
+nhanes2013[8,c(2,6:10)]
+
+#or pick based off of names
+nhanes2013[,c("RIDAGEYR", "DUQ290")]
+
+```
+
+The last example shown is really useful when you want to make subsets of data; and is most analagous to a 'keep' statement. You list all the variables you want to keep in a concatenated list within the [], and assign the result of that expression to a new object. For example
+
+```{r}
+demographics <- nhanes2013[,c("RIDAGEYR", "RIDAGEMN", "RIAGENDR", "RIDEXPRG", "RIDEXMON")]
+
+
+```
+
+
+Back to recoding. There are some ways in which R can make this either extremely easy, or extremely tedious, depending on the complexity of the recoding that needs to be done. If we have a small dataframe or a very consistent coding scheme or for, whatever reason, wanted to replace specific values across ANY variable with something else, this is possible in just one line of code.
+
+Of course, it's not really best practice to do this- ever- because it doesn't give you much control in the process and doesn't help you get to know the data, but you __CAN__.
+```{r}
+#I'm commenting this out because I just want to illustrate
+# nhanes2013[nhanes2013 == 999] <- NA
+# here I've said: anywhere in the entire dataset that is 999,
+#make missing
+
+
+```
+
+A better approach is to go variable by variable and decide what we need to do that way.
+
+One way to recode that doesn't require any additional packages is the ifelse() statements in base R. THe general format is dataframe$mynewvar <- ifelse(dataframe$oldvar =x, y, z). the first part represents the if- if oldvar = x. y represents the result of what to do if this is TRUE (the then equivalent in SAS). z represents what to do if the if is evaluated to FALSE- it can be another if statement if you have more than 2 possible results
+
+```{r}
+#One tiered ifelse example
+
+#THe binary teenYN is created as :
+#if age < 20 is TRUE --> 1, otherwise, 0
+nhanes2013$teenYN <- ifelse(nhanes2013$RIDAGEYR < 20, 1, 0)
+
+
+#Nested ifelse example
+nhanes2013$avgMJpuff <- ifelse(nhanes2013$DUQ219 ==1, 1,
+                               ifelse(nhanes2013$DUQ219 == 2, 2,
+                                      ifelse(nhanes2013$DUQ219 ==3, 4,
+                                             ifelse(nhanes2013$DUQ219 == 4, 7, NA))))
+
+
+#check recoding
+table(nhanes2013$DUQ219, nhanes2013$avgMJpuff)
+
+
+```
+
+So what did I just do with the last example? THe variable DUQ219 is an ordinal variable that codes how many puffs of marijuana a user takes a on a typical day. 1 means 1 puff, 2 means 2, 3 means 3-5, 4 means 6 or more. ( 7 and 9 are rf and don't know, missing is missing). I recoded it so instead of the categorical number, it's the avg puff (other than group 4, which could have a much higher avg midpoint). Walking through it, it goes something like:
+If the value is 1, code it 1 ELSE...
+if the value is 2, code is 2, ELSE....
+if the value is 3, code is 4, else...
+if the value is 4, code it 7, else it's missing.
+
+You may wonder how on earth to keep track of all the parentheses- fair question. Generally, when you type an opening parenthese in R it automatically generates the second one for you, so you have the right amount!
+
+Go through and recode DUQ240 (Have you ever used cocaine, crack cocaine, heroin, or methamphetamine?) so that 1 is Yes, 0 is No, and refused and don't know are mssing. You can call the recoded variable anything you like.
+
+```{r}
+#recode DUQ240
+
+
+```
+
+
+To go beyond what is provided in base R, two great packages for recording are dplyr and car. They make more complex recodes a little more easy to read and take up less code. Go ahead and load these packages, and then we can do some recoding in the two different ways provided by each of the packages.
+```{r}
+#load packages
+
+
+```
+
+
+First: dplyr. Let's do the same example with marijuana puffs
+```{r}
+nhanes2013$dplyrMJ <- case_when(nhanes2013$DUQ219 == 1~ 1,
+                                nhanes2013$DUQ219 == 2~ 2,
+                                nhanes2013$DUQ219 == 3~ 4,
+                                nhanes2013$DUQ219 == 4~ 7,
+                                TRUE~ 999)
+
+nhanes2013$dplyrMJ <- na_if(nhanes2013$dplyrMJ ,999)
+
+```
+
+What I did in the first part is use a function called case_when which is more ideal for cases with lots of possible options for the recoding. on the lefthand side is the expression wiht what the old value of the variable is, and after the squiggly tilde comes what the new value should be. It's fairly intuitive, until the last line. What this part is doing is equivalent to an else: statement at the end of a long list of parameteres to look through. The portion on the right gets assigned to everything else (because TRUE is always going to evaluate to TRUE), in this case 999. Why didn't I assign it to NA here? Becuase case_when is picky about the datatype it assigns.... it wants everything to be consistent, and sees NA as a totally different form than numeric.
+
+Thus, I added one more line of code, na_if from dplyr, which assigns as NA anything in the first argument that has the value of the second argument; in this case, anything in the newly created dplyrMJ variable that is 999- which I created specifically for such a purpose.
+
+```{r}
+#Can you check the recoding to make sure it was done properly?
+
+
+
+```
+
+
+Now for an example from the car library.
+Let's recode the question DUQ250, for "Ever use any form of cocaine". 1 means yes, 2 means no, 7 and 9 are refused/DK. 
+```{r}
+#I add the :: here to specify that I want the recode() command from the car library
+#The symbol is not usually necessary except when two packages that each have a function with
+#the same name are loaded simultaneously. dplyr also has a recode function; necessitating this use
+
+nhanes2013$everCoke <- car::recode(nhanes2013$DUQ250, 
+                                 "1 = 'Yes';
+                                 2 = 'No';
+                                 7 = NA;
+                                 9 = NA")
+
+#note semicolos here instead of commas, and single quotes instead of doubles for the strings of yes and
+#no. This is because EVERYTHING that is being recoded has to be enclosed within single quotes
+
+
+install.packages("descr")
+library(descr)
+CrossTable(nhanes2013$everCoke, nhanes2013$DUQ250)
+
+
+```
+
+
+Other than the simple table() command shown previously, you can use the CrossTable in descr() to do crosstabs with more information and to check your recoding.
+
+Try recoding a few more variables in the dataset, using your method of choice.
+
+```{r}
+
+
+
+
+
+```
+
+
+What about mathematical operations? Those tend to be far easier to do in the coding of variables, and can be done much the way you might in SAS... simply by adding/subtracting/multiplying a numeric to the variable in question.
+
+```{r}
+nhanes2013$plusTwo <- nhanes2013$DUQ250 +2
+
+nhanes2013$timesTwo <- nhanes2013$DUQ250 *2
+
+
+```
+
+
+Common tests:
+```{r}
+mean(nhanes2013$RIDAGEYR, na.rm =T) #note to include this na.rm = T argument bc won't work if missing values are
+#in the variable. This removes them from the calculation
+
+median(nhanes2013$RIDAGEYR, na.rm = T)
+
+iqr(nhanes2013$RIDAGEYR, na.rm =T)
+
+#note in many of the 'tests' we use the ~ to say y ~'predicted by' x
+
+ttest <- t.test(RIDAGEYR~ teenYN, data = nhanes2013)
+                      #OR
+t.test(nhanes2013$RIDAGEYR~ nhanes2013$teenYN)
+
+#for nonparametric Mann Whitney U
+#manwhit <- wilcox.test(y~x)
+#summary(manwhit)
+
+#anova
+#myanova <- aov.test(y~factorx) x must be a factor!
+#summary(myanova)
+
+
+#correlation
+corr <- cor.test(nhanes2013$RIDAGEYR, nhanes2013$DUQ213)
+
+#linear regression
+linreg <- lm(data = nhanes2013, DUQ213 ~ RIDAGEYR + avgMJpuff)
+#to include ALL possible variables as predictors, use a . after the tilde
+
+
+#to get more info about our linear reg test
+summary(linreg)
+
+
+#chi squared
+#from descr library
+CrossTable(nhanes2013$teenYN, nhanes2013$avgMJpuff, chisq = T)
+
+
+#logistic regression example
+#zmodel <- glm(zombie ~ age + gender + rurality + food, data = zombies,
+ #             family = binomial(logit), na.action = na.exclude)
+
+```
+
+
+I haven't done much with odds ratios and relative risks in R, but there is supposedly a package called pubh which has functions for those.
+
+
+What you have probably heard- because it is true- is that R does great with graphics. So that's what we're going to jump into next... in another tutorial- the world of ggplot2. (it stands for grammar of graphics, because it aims to make code in a repeatable way for all variations of graphs it generates)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
