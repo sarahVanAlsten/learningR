@@ -1,0 +1,53 @@
+---
+title: "books"
+author: "Sarah Van Alsten"
+date: "4/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(pdftools)
+library(readxl)
+library(httr)
+library(janitor)
+library(XML)
+
+```
+
+```{r}
+
+
+books <- readxl::read_xlsx('Springer.xlsx')
+books <- janitor::clean_names(books)
+print('Download started.')
+  
+
+for (i in 1:nrow(books)){
+    r <- httr::GET(books$open_url[i])
+    new_url <- r$url
+    
+    new_url <- stringr::str_replace(new_url, '/book/','/content/pdf/') %>%
+      stringr::str_replace('%2F','/') %>% paste0('.pdf')
+
+    final <- stringr::str_split(new_url, '/')[-1]
+    final <- stringr::str_replace(books$book_title[i], ',','-') %>%
+    stringr::str_replace('.','') %>% stringr::str_replace('/',' ') %>%
+    paste0("_")
+  
+    final2 <- stringr::str_replace(books$author[i],', ','+') %>%
+    stringr::str_replace('.','') %>% stringr::str_replace('/',' ') %>%
+    paste0('.pdf')
+  
+    final3 <- paste0(final, final2)
+  
+    download.file(new_url, final3, mode="wb")
+  
+}
+
+
+
+print('Download finished.')
+```
+
